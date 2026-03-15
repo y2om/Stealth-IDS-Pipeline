@@ -86,8 +86,18 @@ echo "Done!"
 ---
 
 ### 트러블슈팅 (Troubleshooting)
-- **이슈:** 초기 구성 시 IDS 센서에서 패킷이 관측되지 않음.
-- **원인 및 해결:** L2 Switch의 SPAN 설정 누락 확인. 스위치 미러링 설정(monitor session)을 통해 물리적으로 트래픽이 복사되도록 조치 후 탐지 정상화.
+- **이슈 1:** 초기 공격 시뮬레이션 시 IDS 센서(Suricata)에서 탐지 로그가 발생하지 않음.
+- **원인 파악:** `tcpdump -i ens3 icmp` 명령어로 확인 결과, 장비로 트래픽 자체가 인입되지 않음을 확인.
+  ![Network Traffic Missing](./images/tcpdump_error.png) 
+- **해결 1:** L2 Switch의 SPAN(Port Mirroring) 설정 누락 확인 후 재설정(monitor session). 이후 트래픽 정상 인입 확인.
+
+- **이슈 2:** 트래픽 정상 인입 후에도 `fast.log`에 시그니처 매칭 로그 기록 불가.
+- **원인 파악:** Suricata 백그라운드 프로세스가 커스텀 룰(`local.rules`)을 정상적으로 로드하지 못함.
+- **해결 2:** 데몬 강제 종료 후 수동 명령어로 룰셋 명시적 재실행.
+  ```bash
+  killall suricata
+  suricata -D -c /etc/suricata/suricata.yaml -i ens3 -S /etc/suricata/rules/local.rules
+  ```
 
 ## License
 MIT License
